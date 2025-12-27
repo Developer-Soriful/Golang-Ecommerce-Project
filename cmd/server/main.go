@@ -2,9 +2,9 @@ package main
 
 import (
 	"api-with-golang/configs"
-	authservice "api-with-golang/internal/authService"
 	"api-with-golang/internal/controllers"
 	"api-with-golang/internal/database"
+	"api-with-golang/internal/services"
 	"context"
 	"fmt"
 	"log"
@@ -33,14 +33,19 @@ func main() {
 	db := client.Database("shopsphere")
 	database.InitDB(db)
 
-	app.HandleFunc("/api/register", authservice.Register).Methods("POST")
+	app.HandleFunc("/api/register", services.Register).Methods("POST")
 	app.HandleFunc("/api/users", controllers.User).Methods("GET")
-	app.HandleFunc("/api/login", controllers.LoginUser).Methods("POST")
-	app.HandleFunc("/api/user-delete/{id}", authservice.UserDelete).Methods("DELETE")
+	app.HandleFunc("/api/login", services.LoginUser).Methods("POST")
+	app.HandleFunc("/api/user-delete/{id}", services.UserDelete).Methods("DELETE")
+	app.HandleFunc("/api/orders", services.OrderHandler).Methods("POST")
 
 	products := configs.Collection("shopsphere", "products")
 	fmt.Println("Collection ready:", products.Name())
 
-	fmt.Println("server is running on port 8080")
-	log.Fatal(http.ListenAndServe(":8080", app))
+	// Start the server
+	port := ":8080"
+	fmt.Printf("Server is running on port %s\n", port)
+	if err := http.ListenAndServe(port, app); err != nil {
+		log.Fatal("Server error:", err)
+	}
 }
