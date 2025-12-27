@@ -1,50 +1,41 @@
 package main
 
 import (
-	datalist "api-with-golang/internal/data"
-	databse "api-with-golang/internal/database"
-	"api-with-golang/internal/handlers"
+	"api-with-golang/configs"
+	"api-with-golang/internal/controllers"
+	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 )
 
 func main() {
-	// Main function to start the server and define routes
 	app := http.NewServeMux()
-	app.HandleFunc("GET /getProduct", handlers.GetProduct)
-	app.HandleFunc("POST /use-post", handlers.UserPost)
-	app.HandleFunc("GET /getProduct/{id}", handlers.GetProductByID)
-	app.HandleFunc("PUT /updateProduct/{id}", handlers.UpdateProductByID)
-	app.HandleFunc("DELETE /deleteProduct/{id}", handlers.DeleteProductByID)
-	app.HandleFunc("PATCH /updateProductTitle/{id}", handlers.UpdateTitleByID)
-	fmt.Println(`server is running 8080 port`)
+
+	configs.ConnectMongo("mongodb://localhost")
+
+	client := configs.Client
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := client.Ping(ctx, nil); err != nil {
+		log.Fatal("MongoDB ping failed:", err)
+	}
+
+	fmt.Println("Connected to MongoDB successfully!")
+
+	db := client.Database("shopsphere")
+
+	controllers.InitDB(db)
+
+	app.HandleFunc("/api/register", controllers.Register)
+	app.HandleFunc("/api/users", controllers.User)
+
+	products := configs.Collection("shopsphere", "products")
+	fmt.Println("Collection ready:", products.Name())
+
+	fmt.Println("server is running on port 8080")
 	http.ListenAndServe(":8080", app)
-}
-
-func init() {
-	item1 := databse.ItemList{
-		ID:      1,
-		Title:   "Test title 1",
-		Content: "This is test content",
-		Created: time.Now().Format(time.RFC3339),
-		Updated: time.Now().Format(time.RFC3339),
-	}
-	item2 := databse.ItemList{
-		ID:      2,
-		Title:   "Test title 1",
-		Content: "This is test content",
-		Created: time.Now().Format(time.RFC3339),
-		Updated: time.Now().Format(time.RFC3339),
-	}
-	item3 := databse.ItemList{
-		ID:      3,
-		Title:   "Test title 1",
-		Content: "This is test content",
-		Created: time.Now().Format(time.RFC3339),
-		Updated: time.Now().Format(time.RFC3339),
-	}
-
-	datalist.Items = append(datalist.Items, item1, item2, item3)
-
 }
