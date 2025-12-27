@@ -30,6 +30,7 @@ func main() {
 
 	controllers.InitDB(db)
 
+	//
 	app.HandleFunc("/api/register", controllers.Register)
 	app.HandleFunc("/api/users", controllers.User)
 

@@ -11,3 +11,7 @@ type User struct {
 	CreatedAt string             `bson:"created_at" json:"created_at"`
 	UpdatedAt string             `bson:"updated_at" json:"updated_at"`
 }
+type Login struct {
+	Email    string `bson:"email" json:"email"`
+	Password string `bson:"password" json:"password"`
+}
